@@ -45,15 +45,8 @@ def get_row(evtc):
 # 56475 magma buff on player?
 
 # interesting timestamps:
-# start combat
-# start p1
-# start last barrage cast
-# start magma 1
-# start pylon transformation    56223
-# start p2
-# start magma 2
-# start pylon transformation    56223
-# start p3
+# start of last action before phase change
+#
 # starts charging
 # destroyed pylon (north)
 # returns center
