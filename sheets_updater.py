@@ -18,8 +18,50 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 # https://docs.google.com/spreadsheets/d/1Eexwq48s_lpd88N0puwF0vUyF_RCmZQbZzU7wWiTP1c/edit?usp=sharing
 CND_SPREADSHEET_ID = '1Eexwq48s_lpd88N0puwF0vUyF_RCmZQbZzU7wWiTP1c'
 AVES_SPREADSHEET_ID = '1UkGLkimQY_csoNbdBtmfGlcyEdtrpHX286_5YVLdRxI'
-path_creds = pathlib.Path("C:/Users/berno/Documents/Python Scripts/Guildwars_2_Parsing/credentials.json")
-path_token = pathlib.Path('C:/Users/berno/Documents/Python Scripts/Guildwars_2_Parsing/token.json')
+path_creds = pathlib.Path.cwd() / "credentials.json"
+path_token = pathlib.Path.cwd() / "token.json"
+
+
+class google_sheet:
+    def __init__(self, sheet_id):
+        self.sheet_id = sheet_id
+        self.creds = get_creds()
+
+    def from_csv(self, csv_path, csv_name):
+        values = []
+        with csv_path.open(mode='r') as f:
+            csv_reader = csv.reader(f)
+            for row in csv_reader:
+                if len(row) > 0:
+                    values.append(row)
+
+        sheet_range = csv_name + '!A:XX'    # range can be larger than data (XX is large)
+
+        self.update_sheet(sheet_range, values)
+        pass
+
+    def update_sheet(self, spreadsheet_range, values):
+        try:
+            service = build('sheets', 'v4', credentials=self.creds)
+
+            value_range = {
+                'range': spreadsheet_range,
+                'majorDimension': 'ROWS',
+                'values': values,
+            }
+
+            # update the entries
+            sheet = service.spreadsheets()
+            sheet.values().update(spreadsheetId=self.sheet_id,
+                                  range=spreadsheet_range,
+                                  valueInputOption='RAW',
+                                  body=value_range).execute()
+
+        except HttpError as err:
+            print(err)
+
+        pass
+
 
 
 def get_creds():
@@ -38,7 +80,7 @@ def get_creds():
                 str(path_creds), SCOPES)
             creds = flow.run_local_server(port=0)
         # Save the credentials for the next run
-        with open(path_token, 'w') as token:
+        with path_token.open(mode='w') as token:
             token.write(creds.to_json())
     return creds
 
@@ -83,5 +125,6 @@ def csv_to_googlesheet(boss_name, SPREADSHEET_ID=CND_SPREADSHEET_ID):
 
 
 if __name__ == '__main__':
-    csv_to_googlesheet('Samarog/Samarog.csv', CND_SPREADSHEET_ID)
-
+    sama_sheet = google_sheet(CND_SPREADSHEET_ID)
+    path = pathlib.Path('./Samarog/Samarog.csv')
+    sama_sheet.from_csv(csv_path=path, csv_name='Samarog')
