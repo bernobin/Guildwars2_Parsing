@@ -1,5 +1,7 @@
+import pathlib
+
 from parser import Parser, get_date_time
-from sheets_updater import csv_to_googlesheet
+from sheets_updater import csv_to_googlesheet, Google_sheet
 import numpy as np
 
 # erratic energy id = 56582
@@ -15,7 +17,6 @@ def get_row(evtc):
     bubble_down = get_bubble_down(e)
     magma_lift = get_magma_lifting(e)
     trans_start, trans_end = get_pylon_transformation(e)
-
 
     row = {
         'link': ei_data['permalink'],
@@ -35,6 +36,8 @@ def get_row(evtc):
         'lift 2 end': magma_lift[3],
 
         'p3 start': bubble_down[2],
+        '40% time': get_hptime(e, 0.4, qadim_id),
+        'charge north': get_batteringblitz(e, qadim_id)
     }
 
     print(row)
@@ -127,12 +130,21 @@ def get_erratic_energy(events, agents, start, end, qadim_id):
     return downtime_dict
 
 
-qadimp_parser = Parser()
-data = qadimp_parser.get_json('20231203-215616')
-agents,skills,events = qadimp_parser.get_ase('20231203-215616')
+def get_hptime(events, hp_percent, qadim_id):
+    filt = (events['src_agent'] == qadim_id) & (events['state_change'] == 8) & (events['dst_agent'] <= hp_percent * 10000)
+    return events[filt].time.min()
 
-erratic_energy_id = 56582
-qadim_id = agents[agents['prof'] == 22000].addr.min()
+
+def get_batteringblitz(events, qadim_id):
+    batteringram_id = 56616
+    filt = (events['skillid'] == batteringram_id) & (events['src_agent'] == qadim_id)
+    return events[filt].time.min()
+
+qadimp_parser = Parser()
+data = qadimp_parser.get_json('20231210-220722')
+agents, skills, events = qadimp_parser.get_ase('20231210-220722')
 
 qadimp_parser.get_csv('QadimThePeerless_Timeline', get_row)
 csv_to_googlesheet('QadimThePeerless_Timeline', '1UkGLkimQY_csoNbdBtmfGlcyEdtrpHX286_5YVLdRxI')
+#sheet = Google_sheet('1UkGLkimQY_csoNbdBtmfGlcyEdtrpHX286_5YVLdRxI')
+#sheet.from_csv(pathlib.Path.cwd() / "QadimThePeerless_Timeline.csv", "QadimThePeerless_Timeline")

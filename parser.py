@@ -117,24 +117,27 @@ state_change_types = [
 
 class Parser:
     def __init__(self):
-        self.evtc_directory = pathlib.Path('./evtcFiles')
-        self.json_directory = pathlib.Path('./jsonFiles')
-        self.zevtc_directory = pathlib.Path('./zevtcFiles')
+        self.evtc_directory = pathlib.Path.cwd() / 'evtcFiles'
+        self.json_directory = pathlib.Path.cwd() / 'jsonFiles'
+        self.zevtc_directory = pathlib.Path.cwd() / 'zevtcFiles'
 
-        if not os.path.exists(self.evtc_directory):
-            os.mkdir(self.evtc_directory)
-        if not os.path.exists(self.json_directory):
-            os.mkdir(self.json_directory)
-        if not os.path.exists(self.zevtc_directory):
-            os.mkdir(self.zevtc_directory)
+        if not self.evtc_directory.exists():
+            self.evtc_directory.mkdir()
+        if not self.json_directory.exists():
+            self.json_directory.mkdir()
+        if not self.zevtc_directory.exists():
+            self.zevtc_directory.mkdir()
 
-        if len(os.listdir(self.zevtc_directory)) != len(os.listdir(self.evtc_directory)):
-            self.unzipper()
+        for z_file in self.zevtc_directory.iterdir():
+            file = self.evtc_directory / z_file.name
+            if not file.exists():
+                with zipfile.ZipFile(z_file) as zip_ref:
+                    zip_ref.extractall(self.evtc_directory)
 
     def get_ase(self, evtc_name):
         evtc_file = self.evtc_directory / evtc_name
 
-        with open(evtc_file, 'rb') as f:
+        with evtc_file.open(mode='rb') as f:
             # Header
             header = f.read(16)
             evtc, version, area_id, revision = struct.unpack('<4s9sHB', header)
@@ -164,15 +167,13 @@ class Parser:
         zevtc = evtc_name + '.zevtc'
         zevtc_path = self.zevtc_directory / zevtc
 
-        json_collection = os.listdir(self.json_directory)
-
-        if evtc_name in json_collection:
-            json_file = self.json_directory / evtc_name
-            t = open(json_file)
+        json_path = self.json_directory / evtc_name
+        if json_path.exists():
+            t = open(json_path)
             return json.load(t)
 
         try:
-            with open(zevtc_path, 'rb') as f:
+            with zevtc_path.open(mode='rb') as f:
                 r = requests.post(GW2EI_UPLOAD, files={'file': f}, timeout=60000)
             simple_report = r.json()
             report_id = simple_report['id']
@@ -182,8 +183,7 @@ class Parser:
             detailed_report = r.json()
             detailed_report['permalink'] = report_permalink
 
-            json_file = self.json_directory / evtc_name
-            with open(json_file, 'w') as f:
+            with json_path.open(mode='w') as f:
                 print('successfully created json file for', evtc_name)
                 json.dump(detailed_report, f)
 
@@ -193,17 +193,6 @@ class Parser:
             print('got jsonDecodeError, sleeping 1 minute')
             time.sleep(60)
             return self.get_json(evtc_name)
-
-    def unzipper(self):
-        print('unzipping')
-        for zevtc in os.listdir(self.zevtc_directory):
-            file_path = self.zevtc_directory / zevtc
-
-            if not os.path.exists(self.evtc_directory):
-                os.mkdir(self.evtc_directory)
-            with zipfile.ZipFile(file_path) as zip_ref:
-                zip_ref.extractall(self.evtc_directory)
-        pass
 
     def get_agent_trails(self, evtc_name):
         trails = {}
@@ -243,8 +232,8 @@ class Parser:
         csv_array = []
         fieldnames = []
 
-        for evtc in os.listdir(self.evtc_directory):
-            row = get_row(evtc)
+        for evtc in self.evtc_directory.iterdir():
+            row = get_row(evtc.name)
             csv_array.append(row)
             if len(row) > len(fieldnames):
                 fieldnames = row.keys()

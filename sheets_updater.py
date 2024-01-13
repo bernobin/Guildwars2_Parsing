@@ -18,11 +18,11 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 # https://docs.google.com/spreadsheets/d/1Eexwq48s_lpd88N0puwF0vUyF_RCmZQbZzU7wWiTP1c/edit?usp=sharing
 CND_SPREADSHEET_ID = '1Eexwq48s_lpd88N0puwF0vUyF_RCmZQbZzU7wWiTP1c'
 AVES_SPREADSHEET_ID = '1UkGLkimQY_csoNbdBtmfGlcyEdtrpHX286_5YVLdRxI'
-path_creds = pathlib.Path.cwd() / "credentials.json"
-path_token = pathlib.Path.cwd() / "token.json"
+path_creds = pathlib.Path.cwd().parent / "credentials.json"
+path_token = pathlib.Path.cwd().parent / "token.json"
 
 
-class google_sheet:
+class Google_sheet:
     def __init__(self, sheet_id):
         self.sheet_id = sheet_id
         self.creds = get_creds()
@@ -125,6 +125,6 @@ def csv_to_googlesheet(boss_name, SPREADSHEET_ID=CND_SPREADSHEET_ID):
 
 
 if __name__ == '__main__':
-    sama_sheet = google_sheet(CND_SPREADSHEET_ID)
+    sama_sheet = Google_sheet(CND_SPREADSHEET_ID)
     path = pathlib.Path('./Samarog/Samarog.csv')
     sama_sheet.from_csv(csv_path=path, csv_name='Samarog')
