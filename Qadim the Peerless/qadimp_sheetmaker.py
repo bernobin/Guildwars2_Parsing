@@ -18,6 +18,12 @@ def get_row(evtc):
     magma_lift = get_magma_lifting(e)
     trans_start, trans_end = get_pylon_transformation(e)
 
+    ee_dicts = [
+        get_erratic_energy(e, a, bubble_down[0], magma_lift[0], qadim_id),
+        get_erratic_energy(e, a, bubble_down[1], magma_lift[2], qadim_id),
+        get_erratic_energy(e, a, bubble_down[2], get_batteringblitz(e, qadim_id), qadim_id)
+    ]
+
     row = {
         'link': ei_data['permalink'],
         'date': d,
@@ -25,19 +31,22 @@ def get_row(evtc):
         'log start': start,
         'p1 start': bubble_down[0],
         'lift 1 start': magma_lift[0],
+        'erratic energy 1': round(sum(ee_dicts[0][k] for k in ee_dicts[0])/100, 2),
         'pylon flip 1 start': trans_start[0],
         'pylon flip 1 end': trans_end[0],
         'lift 1 end': magma_lift[1],
 
         'p2 start': bubble_down[1],
         'lift 2 start': magma_lift[2],
+        'erratic energy 2': round(sum(ee_dicts[1][k] for k in ee_dicts[1])/100, 2),
         'pylon flip 2 start': trans_start[1],
         'pylon flip 2 end': trans_end[1],
         'lift 2 end': magma_lift[3],
 
         'p3 start': bubble_down[2],
         '40% time': get_hptime(e, 0.4, qadim_id),
-        'charge north': get_batteringblitz(e, qadim_id)
+        'charge north': get_batteringblitz(e, qadim_id),
+        'erratic energy 3': round(sum(ee_dicts[2][k] for k in ee_dicts[2])/100, 2),
     }
 
     print(row)
@@ -141,10 +150,11 @@ def get_batteringblitz(events, qadim_id):
     return events[filt].time.min()
 
 qadimp_parser = Parser()
-data = qadimp_parser.get_json('20231210-220722')
-agents, skills, events = qadimp_parser.get_ase('20231210-220722')
+#data = qadimp_parser.get_json('20231210-220722')
+#agents, skills, events = qadimp_parser.get_ase('20231210-220722')
 
 qadimp_parser.get_csv('QadimThePeerless_Timeline', get_row)
 csv_to_googlesheet('QadimThePeerless_Timeline', '1UkGLkimQY_csoNbdBtmfGlcyEdtrpHX286_5YVLdRxI')
+
 #sheet = Google_sheet('1UkGLkimQY_csoNbdBtmfGlcyEdtrpHX286_5YVLdRxI')
 #sheet.from_csv(pathlib.Path.cwd() / "QadimThePeerless_Timeline.csv", "QadimThePeerless_Timeline")
