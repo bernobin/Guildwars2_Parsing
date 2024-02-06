@@ -1,0 +1,7 @@
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+matplotlib~=3.7.2
+numpy~=1.24.2
+pandas~=1.5.3
+requests~=2.31.0

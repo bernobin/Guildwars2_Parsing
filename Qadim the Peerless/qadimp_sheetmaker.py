@@ -17,6 +17,7 @@ def get_row(evtc):
     bubble_down = get_bubble_down(e)
     magma_lift = get_magma_lifting(e)
     trans_start, trans_end = get_pylon_transformation(e)
+    charge_time = get_batteringblitz(e, qadim_id)
 
     ee_dicts = [
         get_erratic_energy(e, a, bubble_down[0], magma_lift[0], qadim_id),
@@ -45,8 +46,9 @@ def get_row(evtc):
 
         'p3 start': bubble_down[2],
         '40% time': get_hptime(e, 0.4, qadim_id),
-        'charge north': get_batteringblitz(e, qadim_id),
+        'charge north': charge_time,
         'erratic energy 3': round(sum(ee_dicts[2][k] for k in ee_dicts[2])/100, 2),
+        'cc_before_40%': cc_before_40(e, qadim_id, charge_time, bubble_down[2])
     }
 
     print(row)
@@ -148,6 +150,12 @@ def get_batteringblitz(events, qadim_id):
     batteringram_id = 56616
     filt = (events['skillid'] == batteringram_id) & (events['src_agent'] == qadim_id)
     return events[filt].time.min()
+
+def cc_before_40(events, qadim_id, charge_time, bubble_down):
+    cc_id = 56242
+    filt = (events['skillid'] == cc_id) & (events['src_agent'] == qadim_id) & (events['time'] <= charge_time) & (events['time'] >= bubble_down)
+    return not events[filt].empty
+
 
 qadimp_parser = Parser()
 #data = qadimp_parser.get_json('20231210-220722')

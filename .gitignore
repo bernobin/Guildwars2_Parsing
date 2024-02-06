@@ -9,3 +9,4 @@
 /.idea
 /credentials.json
 /token.json
+/venv/
