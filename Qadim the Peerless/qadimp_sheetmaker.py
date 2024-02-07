@@ -7,7 +7,13 @@ import numpy as np
 # erratic energy id = 56582
 def get_row(evtc):
     a, s, e = qadimp_parser.get_ase(evtc)
+
+
     ei_data = qadimp_parser.get_json(evtc)
+    try:
+        link = ei_data['permalink']
+    except TypeError:
+        link = "no upload"
 
     d, t = get_date_time(evtc)
     qadim_id = a[a['prof'] == 22000].addr.min()
@@ -26,7 +32,7 @@ def get_row(evtc):
     ]
 
     row = {
-        'link': ei_data['permalink'],
+        'link': link,
         'date': d,
         'time': t,
         'log start': start,
@@ -157,7 +163,11 @@ def cc_before_40(events, qadim_id, charge_time, bubble_down):
     return not events[filt].empty
 
 
-qadimp_parser = Parser()
+generate_reports = input("do you want to upload the logs to dps.report? Y/N (Will take a (up to very long) while if jsons have not been generated before)")
+if generate_reports == "Y" or generate_reports == "y":
+    qadimp_parser = Parser(generate_reports=True)
+else:
+    qadimp_parser = Parser(generate_reports=False)
 #data = qadimp_parser.get_json('20231210-220722')
 #agents, skills, events = qadimp_parser.get_ase('20231210-220722')
 

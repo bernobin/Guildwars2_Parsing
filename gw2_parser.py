@@ -116,10 +116,11 @@ state_change_types = [
 
 
 class Parser:
-    def __init__(self):
+    def __init__(self, generate_reports=True):
         self.evtc_directory = pathlib.Path.cwd() / 'evtcFiles'
         self.json_directory = pathlib.Path.cwd() / 'jsonFiles'
         self.zevtc_directory = pathlib.Path.cwd() / 'zevtcFiles'
+        self.generate_reports = generate_reports
 
         if not self.evtc_directory.exists():
             self.evtc_directory.mkdir()
@@ -172,27 +173,29 @@ class Parser:
             t = open(json_path)
             return json.load(t)
 
-        try:
-            with zevtc_path.open(mode='rb') as f:
-                r = requests.post(GW2EI_UPLOAD, files={'file': f}, timeout=60000)
-            simple_report = r.json()
-            report_id = simple_report['id']
-            report_permalink = simple_report['permalink']
+        elif self.generate_reports:
+            try:
+                with zevtc_path.open(mode='rb') as f:
+                    r = requests.post(GW2EI_UPLOAD, files={'file': f}, timeout=60000)
+                simple_report = r.json()
+                report_id = simple_report['id']
+                report_permalink = simple_report['permalink']
 
-            r = requests.post(GW2EI_GETJSON + report_id, timeout=60000)
-            detailed_report = r.json()
-            detailed_report['permalink'] = report_permalink
+                r = requests.post(GW2EI_GETJSON + report_id, timeout=60000)
+                detailed_report = r.json()
+                detailed_report['permalink'] = report_permalink
 
-            with json_path.open(mode='w') as f:
-                print('successfully created json file for', evtc_name)
-                json.dump(detailed_report, f)
+                with json_path.open(mode='w') as f:
+                    print('successfully created json file for', evtc_name)
+                    json.dump(detailed_report, f)
 
-            return detailed_report
+                return detailed_report
 
-        except json.decoder.JSONDecodeError:
-            print('got jsonDecodeError, sleeping 1 minute')
-            time.sleep(60)
-            return self.get_json(evtc_name)
+            except json.decoder.JSONDecodeError:
+                print('got jsonDecodeError, sleeping 1 minute')
+                time.sleep(60)
+                return self.get_json(evtc_name)
+        return "no upload"
 
     def get_agent_trails(self, evtc_name):
         trails = {}
