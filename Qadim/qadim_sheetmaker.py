@@ -1,4 +1,4 @@
-from parser import Parser, get_date_time
+from gw2_parser import Parser, get_date_time
 from sheets_updater import csv_to_googlesheet
 
 

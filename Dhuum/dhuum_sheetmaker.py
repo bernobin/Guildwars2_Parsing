@@ -1,7 +1,7 @@
 import struct
 import matplotlib.pyplot as plt
 
-from parser import Parser
+from gw2_parser import Parser
 
 dhuum_parser = Parser()
 agents, skills, events = dhuum_parser.get_ase("20231106-204156")

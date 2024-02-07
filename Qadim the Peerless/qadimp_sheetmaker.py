@@ -1,6 +1,6 @@
 import pathlib
 
-from parser import Parser, get_date_time
+from gw2_parser import Parser, get_date_time
 from sheets_updater import csv_to_googlesheet, Google_sheet
 import numpy as np
 
@@ -162,7 +162,11 @@ qadimp_parser = Parser()
 #agents, skills, events = qadimp_parser.get_ase('20231210-220722')
 
 qadimp_parser.get_csv('QadimThePeerless_Timeline', get_row)
-csv_to_googlesheet('QadimThePeerless_Timeline', '1UkGLkimQY_csoNbdBtmfGlcyEdtrpHX286_5YVLdRxI')
+try:
+    csv_to_googlesheet('QadimThePeerless_Timeline', '1UkGLkimQY_csoNbdBtmfGlcyEdtrpHX286_5YVLdRxI')
+except Exception as e:
+    print("could not upload the csv to the sheet")
+    print(e)
 
 #sheet = Google_sheet('1UkGLkimQY_csoNbdBtmfGlcyEdtrpHX286_5YVLdRxI')
 #sheet.from_csv(pathlib.Path.cwd() / "QadimThePeerless_Timeline.csv", "QadimThePeerless_Timeline")
