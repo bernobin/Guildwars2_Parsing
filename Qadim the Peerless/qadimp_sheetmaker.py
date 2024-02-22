@@ -1,13 +1,11 @@
-import pathlib
-
 from gw2_parser import Parser, get_date_time
 from sheets_updater import csv_to_googlesheet, Google_sheet
 import numpy as np
 
 # erratic energy id = 56582
+# immunity buff id = 56627
 def get_row(evtc):
     a, s, e = qadimp_parser.get_ase(evtc)
-
 
     ei_data = qadimp_parser.get_json(evtc)
     try:
@@ -23,12 +21,15 @@ def get_row(evtc):
     bubble_down = get_bubble_down(e)
     magma_lift = get_magma_lifting(e)
     trans_start, trans_end = get_pylon_transformation(e)
-    charge_time = get_batteringblitz(e, qadim_id)
+    charge_time = get_batteringblitz_start(e, qadim_id)
+
+    charge_end_hp = pylon_burn_start(qadim_id, e)
+    knockback_end_hp = pylon_burn_end(qadim_id, e)
 
     ee_dicts = [
         get_erratic_energy(e, a, bubble_down[0], magma_lift[0], qadim_id),
         get_erratic_energy(e, a, bubble_down[1], magma_lift[2], qadim_id),
-        get_erratic_energy(e, a, bubble_down[2], get_batteringblitz(e, qadim_id), qadim_id)
+        get_erratic_energy(e, a, bubble_down[2], charge_time, qadim_id)
     ]
 
     row = {
@@ -54,7 +55,12 @@ def get_row(evtc):
         '40% time': get_hptime(e, 0.4, qadim_id),
         'charge north': charge_time,
         'erratic energy 3': round(sum(ee_dicts[2][k] for k in ee_dicts[2])/100, 2),
-        'cc_before_40%': cc_before_40(e, qadim_id, charge_time, bubble_down[2])
+        'cc_before_40%': cc_before_40(e, qadim_id, charge_time, bubble_down[2]),
+
+        'hp after charge 1': charge_end_hp['charge 1'],
+        'hp after charge 2': charge_end_hp['charge 2'],
+        'hp after knockback 1': knockback_end_hp['knockback 1'],
+        'hp after knockback 2': knockback_end_hp['knockback 2']
     }
 
     print(row)
@@ -141,8 +147,10 @@ def get_erratic_energy(events, agents, start, end, qadim_id):
         player_ee_delta = np.diff(player_ee_applications, prepend=start, append=end)
         player_ee_downtime = sum(player_ee_delta[player_ee_delta > 6000] - 6000)/(end-start)*100
         account = agents[agents['addr'] == player].name.min()
-
-        downtime_dict[account.split(':')[0][:-1]] = round(100 - player_ee_downtime, 2)
+        try:
+            downtime_dict[account.split(':')[0][:-1]] = round(100 - player_ee_downtime, 2)
+        except AttributeError:
+            print(account)
 
     return downtime_dict
 
@@ -152,15 +160,59 @@ def get_hptime(events, hp_percent, qadim_id):
     return events[filt].time.min()
 
 
-def get_batteringblitz(events, qadim_id):
+def get_batteringblitz_start(events, qadim_id, time=0):
     batteringram_id = 56616
-    filt = (events['skillid'] == batteringram_id) & (events['src_agent'] == qadim_id)
+    filt = (events['skillid'] == batteringram_id) & (events['src_agent'] == qadim_id) & (events['time'] >= time) & (events['is_activation'] == 1)
     return events[filt].time.min()
+
 
 def cc_before_40(events, qadim_id, charge_time, bubble_down):
     cc_id = 56242
     filt = (events['skillid'] == cc_id) & (events['src_agent'] == qadim_id) & (events['time'] <= charge_time) & (events['time'] >= bubble_down)
     return not events[filt].empty
+
+def get_hp(agent_id, time, events):
+    filt = (events['state_change'] == 8) & (events['src_agent'] == agent_id) & (events['time'] <= time)
+    return events[filt].dst_agent.min()/100
+
+def pylon_burn_start(qadim_id, events):
+    immunity_id = 56627
+
+    filt_1 = (events['is_buffremove'] == 3) & (events['skillid'] == immunity_id)
+    t1 = events[filt_1].time.min()
+
+    t_star = get_batteringblitz_start(events, qadim_id, t1 + 5000)
+
+    filt_2 = (events['is_buffremove'] == 3) & (events['skillid'] == immunity_id) & (events['time'] > t_star)
+    t2 = events[filt_2].time.min()
+
+    hp_vals = {
+        'charge 1': get_hp(qadim_id, t1, events),
+        'charge 2': get_hp(qadim_id, t2, events)
+    }
+
+    return hp_vals
+
+def pylon_burn_end(qadim_id, events):
+    force_of_retaliation_id = 56375
+
+    filt_1 = (events['is_activation'] == 3) & (events['skillid'] == force_of_retaliation_id)
+    t1 = events[filt_1].time.min()
+
+    t_star = get_batteringblitz_start(events, qadim_id, t1 + 5000)
+
+    filt_2 = (events['is_activation'] == 3) & (events['skillid'] == force_of_retaliation_id) & (events['time'] > t_star)
+    t2 = events[filt_2].time.min()
+
+    hp_vals = {
+        'knockback 1': get_hp(qadim_id, t1, events),
+        'knockback 2': get_hp(qadim_id, t2, events)
+    }
+
+    return hp_vals
+
+
+
 
 
 generate_reports = input("do you want to upload the logs to dps.report? Y/N (Will take a (up to very long) while if jsons have not been generated before)")
@@ -168,8 +220,7 @@ if generate_reports == "Y" or generate_reports == "y":
     qadimp_parser = Parser(generate_reports=True)
 else:
     qadimp_parser = Parser(generate_reports=False)
-#data = qadimp_parser.get_json('20231210-220722')
-#agents, skills, events = qadimp_parser.get_ase('20231210-220722')
+
 
 qadimp_parser.get_csv('QadimThePeerless_Timeline', get_row)
 try:
@@ -180,3 +231,6 @@ except Exception as e:
 
 #sheet = Google_sheet('1UkGLkimQY_csoNbdBtmfGlcyEdtrpHX286_5YVLdRxI')
 #sheet.from_csv(pathlib.Path.cwd() / "QadimThePeerless_Timeline.csv", "QadimThePeerless_Timeline")
+
+
+#a,s,e = qadimp_parser.get_ase('20240204-210908')

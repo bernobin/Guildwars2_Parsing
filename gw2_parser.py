@@ -3,7 +3,6 @@ import time
 import numpy as np
 import pandas as pd
 import struct
-import os
 import zipfile
 import json
 import requests
@@ -251,7 +250,7 @@ class Parser:
 def get_date_time(evtc):
     d, t = evtc.split('-')
 
-    d = d[6:8] + '.' + d[4:6] + '.' + d[0:4]
+    d = d[0:4] + '.' + d[4:6] + '.' + d[6:8]
     t = t[0:2] + ':' + t[2:4] + ':' + t[4:6]
 
     return d, t
