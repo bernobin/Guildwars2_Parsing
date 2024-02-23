@@ -194,14 +194,15 @@ def pylon_burn_start(qadim_id, events):
     return hp_vals
 
 def pylon_burn_end(qadim_id, events):
-    force_of_retaliation_id = 56375
+    force_of_retaliation_id = 56405
 
-    filt_1 = (events['is_activation'] == 3) & (events['skillid'] == force_of_retaliation_id)
+    t_star = get_batteringblitz_start(events, qadim_id)
+    filt_1 = (events['skillid'] == force_of_retaliation_id) & (events['time'] > t_star) & (events['is_activation'] != 1)
     t1 = events[filt_1].time.min()
 
     t_star = get_batteringblitz_start(events, qadim_id, t1 + 5000)
 
-    filt_2 = (events['is_activation'] == 3) & (events['skillid'] == force_of_retaliation_id) & (events['time'] > t_star)
+    filt_2 = (events['skillid'] == force_of_retaliation_id) & (events['time'] > t_star) & (events['is_activation'] != 1)
     t2 = events[filt_2].time.min()
 
     hp_vals = {
@@ -233,4 +234,4 @@ except Exception as e:
 #sheet.from_csv(pathlib.Path.cwd() / "QadimThePeerless_Timeline.csv", "QadimThePeerless_Timeline")
 
 
-#a,s,e = qadimp_parser.get_ase('20240204-210908')
+a,s,e = qadimp_parser.get_ase('20240221-191123')
