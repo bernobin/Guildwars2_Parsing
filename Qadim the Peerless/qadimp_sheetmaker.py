@@ -26,10 +26,15 @@ def get_row(evtc):
     charge_end_hp = pylon_burn_start(qadim_id, e)
     knockback_end_hp = pylon_burn_end(qadim_id, e)
 
+    t1, t2 = pylon_burn_start(qadim_id, e)
+    t1_knock, t2_knock = pylon_burn_end(qadim_id, e)
+
     ee_dicts = [
         get_erratic_energy(e, a, bubble_down[0], magma_lift[0], qadim_id),
         get_erratic_energy(e, a, bubble_down[1], magma_lift[2], qadim_id),
-        get_erratic_energy(e, a, bubble_down[2], charge_time, qadim_id)
+        get_erratic_energy(e, a, bubble_down[2], charge_time, qadim_id),
+        get_erratic_energy(e, a, t1, t1_knock, qadim_id),
+        get_erratic_energy(e, a, t2, t2_knock, qadim_id)
     ]
 
     row = {
@@ -57,10 +62,12 @@ def get_row(evtc):
         'erratic energy 3': round(sum(ee_dicts[2][k] for k in ee_dicts[2])/100, 2),
         'cc_before_40%': cc_before_40(e, qadim_id, charge_time, bubble_down[2]),
 
-        'hp after charge 1': charge_end_hp['charge 1'],
-        'hp after charge 2': charge_end_hp['charge 2'],
-        'hp after knockback 1': knockback_end_hp['knockback 1'],
-        'hp after knockback 2': knockback_end_hp['knockback 2']
+        'hp after charge 1': get_hp(qadim_id, t1, e),
+        'hp after charge 2': get_hp(qadim_id, t2, e),
+        'hp after knockback 1': get_hp(qadim_id, t1_knock, e),
+        'hp after knockback 2': get_hp(qadim_id, t2_knock, e),
+        'erratic energy 4': round(sum(ee_dicts[3][k] for k in ee_dicts[3])/100, 2),
+        'erratic energy 5': round(sum(ee_dicts[4][k] for k in ee_dicts[4])/100, 2)
     }
 
     print(row)
@@ -186,12 +193,7 @@ def pylon_burn_start(qadim_id, events):
     filt_2 = (events['is_buffremove'] == 3) & (events['skillid'] == immunity_id) & (events['time'] > t_star)
     t2 = events[filt_2].time.min()
 
-    hp_vals = {
-        'charge 1': get_hp(qadim_id, t1, events),
-        'charge 2': get_hp(qadim_id, t2, events)
-    }
-
-    return hp_vals
+    return [t1, t2]
 
 def pylon_burn_end(qadim_id, events):
     force_of_retaliation_id = 56405
@@ -205,12 +207,7 @@ def pylon_burn_end(qadim_id, events):
     filt_2 = (events['skillid'] == force_of_retaliation_id) & (events['time'] > t_star) & (events['is_activation'] != 1)
     t2 = events[filt_2].time.min()
 
-    hp_vals = {
-        'knockback 1': get_hp(qadim_id, t1, events),
-        'knockback 2': get_hp(qadim_id, t2, events)
-    }
-
-    return hp_vals
+    return [t1, t2]
 
 
 
