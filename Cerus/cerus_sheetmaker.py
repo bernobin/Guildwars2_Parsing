@@ -15,7 +15,7 @@ def get_row(evtc):
     d, t = get_date_time(evtc)
 
     cerus_id = a[a['prof'] == 25989].addr.min()
-    total_barrier_frac = get_barrier_frac(e, cerus_id)
+    barrier_applications = get_barrier_from_ase(e, cerus_id)
 
     total_barrier = get_barrier(ei_data['targets'][0]['totalDamageTaken'][0])
 
@@ -23,8 +23,10 @@ def get_row(evtc):
         'link': link,
         'date': d,
         'time': t,
-        'total barrier (frac)': total_barrier_frac,
-        'total barrier': total_barrier
+        'final percent': 100 - ei_data['targets'][0]['healthPercentBurned'],
+        'barrier applications': barrier_applications,
+        'total barrier': total_barrier,
+        'downstates': get_downstates(ei_data['mechanics'])
     }
 
     print(row)
@@ -32,16 +34,14 @@ def get_row(evtc):
     return row
 
 
-def get_barrier_frac(e, cerus_id):
+def get_barrier_from_ase(e, cerus_id):
     barrier_updates = e[(e['state_change'] == 38) & (e['src_agent'] == cerus_id)].dst_agent.to_numpy()
     barrier_deltas = np.diff(barrier_updates)
 
-    total_barrier = 0
-    for delta in barrier_deltas:
-        if delta < 1000000:
-            total_barrier += delta
+    total_barrier = sum(barrier_deltas[barrier_deltas < 1024])
+    barrier_applications = len(barrier_deltas[barrier_deltas < 1024])
 
-    return total_barrier
+    return barrier_applications
 
 
 def get_barrier(dmg_taken):
@@ -50,10 +50,25 @@ def get_barrier(dmg_taken):
         sum += src['shieldDamage']
     return sum
 
+
+def get_downstates(mechanics):
+    for mechanic in mechanics:
+        if mechanic['name'] == 'Downed':
+            return len(mechanic['mechanicsData'])
+    return 0
+
+
+
+
+
+
 cerus_parser = Parser(generate_reports=True)
 # a,s,e = cerus_parser.get_ase('20240306-225226')
 
 cerus_parser.get_csv('cerussheet', get_row)
 
-# e[(e['state_change'] == 38) & (e['src_agent'] == 20976)]
-# list times of barrier
+try:
+    csv_to_googlesheet('cerussheet', '11IqM36gLdmpktxcPZLLp7HIqlLVpbNsx8WfNLERR6M8')
+except Exception as e:
+    print("could not upload the csv to the sheet")
+    print(e)

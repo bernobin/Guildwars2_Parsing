@@ -194,6 +194,7 @@ class Parser:
                 print('got jsonDecodeError, sleeping 1 minute')
                 time.sleep(60)
                 return self.get_json(evtc_name)
+
         return "no upload"
 
     def get_agent_trails(self, evtc_name):
