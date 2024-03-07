@@ -16,6 +16,7 @@ def get_row(evtc):
 
     cerus_id = a[a['prof'] == 25989].addr.min()
     barrier_applications = get_barrier_from_ase(e, cerus_id)
+    total_stacks = len(e[(e['skillid'] == 69550) & (e['dst_agent'] == cerus_id)])
 
     total_barrier = get_barrier(ei_data['targets'][0]['totalDamageTaken'][0])
 
@@ -24,6 +25,7 @@ def get_row(evtc):
         'date': d,
         'time': t,
         'final percent': 100 - ei_data['targets'][0]['healthPercentBurned'],
+        'final stacks': total_stacks,
         'barrier applications': barrier_applications,
         'total barrier': total_barrier,
         'downstates': get_downstates(ei_data['mechanics'])
@@ -59,11 +61,8 @@ def get_downstates(mechanics):
 
 
 
-
-
-
 cerus_parser = Parser(generate_reports=True)
-# a,s,e = cerus_parser.get_ase('20240306-225226')
+#a,s,e = cerus_parser.get_ase('20240306-225226')
 
 cerus_parser.get_csv('cerussheet', get_row)
 
@@ -72,3 +71,4 @@ try:
 except Exception as e:
     print("could not upload the csv to the sheet")
     print(e)
+
