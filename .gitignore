@@ -1,6 +1,6 @@
 /Logs/*/evtc
 /Logs/*/json
 /.idea
-/credentials.json
-/token.json
+/Misc/credentials.json
+/Misc/token.json
 /venv/
