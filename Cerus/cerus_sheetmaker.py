@@ -4,6 +4,7 @@ import numpy as np
 
 
 def get_row(evtc):
+    test = 'test'
     a, s, e = cerus_parser.get_ase(evtc)
 
     ei_data = cerus_parser.get_json(evtc)
