@@ -1,8 +1,42 @@
-In the working directory you find:
+# Guildwars 2 Parsing
 
-* `gw2_parser.py`: This contains the structure used to extract generic data from the zevtc files. For example `get_ase` and `get_json`.
-* `sheets_updater.py`: This contains the `csv_to_googlesheet` method that uploads the csv to a designated google_sheet for post-processing of the data
+Welcome to my gw2 parsing passion project in python.
 
-Other than that there is a folder for the different projects I had with friends since working on this code.
+## Directories
 
-The current project can be found in "**Qadim the Peerless**" and best reflects the current state of the code. When the older projects finished I stopped updating their code (for the most part).
+Some useful information about the purpose of the different directories
+
+### Logs
+
+The logs for parsing have to be put into this directory.
+The boss directories inside this directory are what determines the structure of the input promp in `main.py`.
+There is no generic boss parser (yet), so generating a new directory and selecting it will break the switchstatement in `Parser_Factory.py`.
+
+### Misc
+
+This folder needs to be created and hold a `credentials.json` file if your generated csv's should be automatically uploaded to some google sheet.
+A `token.json` gets generated when `sheet_updater.py` is executed, which shortcuts the verification process in the future.
+
+### Outputs
+
+The parsed data gets dumped here in a csv file that is named after the chosen boss.
+
+## Packages
+
+Two different types of code are distinguished here
+
+### PARSING
+
+The `Main_Parser.py` contains an interface for all the boss parsers to follow. 
+It implements most of the basic functionalities.
+The named Parsers (i.e. `Cerus_Parser.py`) implement the get row method and set the correct directory.
+`Parser_Factory.py` is a method that returns the desired parser after the input prompt resolves.
+
+### UTILS
+
+Code that enables some key functionalities but isnt directly used for parsing is put here.
+`sheets_uploader.py` for example implements the googlesheets api for automatic uploads.
+
+## main.py
+
+The main method. Run this and see the magic happen.
