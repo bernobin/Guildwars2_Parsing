@@ -8,7 +8,7 @@ def main():
 
     print("BOSSES:")
     for index, boss in enumerate(dirs):
-        print(index, boss)
+        print(f'{index} {boss : <20} {len(list((p / boss / "zevtc").glob("*.zevtc"))) : >4} files')
 
     selection = int(input("Type a number from above to generate the associated sheet:"))
 

@@ -18,8 +18,8 @@ SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 CND_SPREADSHEET_ID = '1Eexwq48s_lpd88N0puwF0vUyF_RCmZQbZzU7wWiTP1c'
 AVES_SPREADSHEET_ID = '1UkGLkimQY_csoNbdBtmfGlcyEdtrpHX286_5YVLdRxI'
 
-creds_file = Path('./Misc/credentials.json')
-token_file = Path('./Misc/token.json')
+creds_file = Path('./SMisc/credentials.json')
+token_file = Path('./SMisc/token.json')
 
 
 def get_creds():

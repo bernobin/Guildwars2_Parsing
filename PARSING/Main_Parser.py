@@ -93,6 +93,8 @@ class Parser(ABC):
             writer.writeheader()
             writer.writerows(csv_arr)
 
+        print('\nCreated the csv: ', OUTPUTS / (self.boss + '.csv'))
+
         return csv_arr, fieldnames
 
     def get_googlesheet(self, sheet_id):
@@ -100,9 +102,12 @@ class Parser(ABC):
         sheet_values = [[key for key in fieldnames]] + \
                        [[row[key] if key in row else None for key in fieldnames] for row in csv_array]
         sheet_range = self.boss + '_DataDump'
-        creds = get_creds()
-        update_sheet(creds, sheet_id, sheet_range, sheet_values)
-        print(f'\nuploaded everything to: https://docs.google.com/spreadsheets/d/{sheet_id}/edit#gid=902530857')
+        try:
+            creds = get_creds()
+            update_sheet(creds, sheet_id, sheet_range, sheet_values)
+            print(f'\nuploaded everything to: https://docs.google.com/spreadsheets/d/{sheet_id}/edit#gid=902530857')
+        except FileNotFoundError:
+            print(f'\nMissing credentials.json file in Misc directory. Could not update the googlesheet.')
         pass
 
     def __repr__(self):
