@@ -6,9 +6,7 @@ from pathlib import Path
 
 class CerusParser(Parser):
     def __init__(self):
-        super().__init__()
-        self.boss = 'Cerus'
-        self.log_directory = Path('./Logs') / self.boss / 'zevtc'
+        super().__init__('Cerus')
 
     def get_row(self, log: Log):
         d, t = log.get_date_time()

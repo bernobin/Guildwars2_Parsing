@@ -2,6 +2,10 @@ from PARSING.Parser_Factory import parser_factory
 from pathlib import Path
 
 
+###
+### AUTOMATICALLY CREATE JSON AND EVTC FOLDERS
+###
+
 def main():
     p = Path('Logs')
     dirs = [d.name for d in p.iterdir() if d.is_dir()]

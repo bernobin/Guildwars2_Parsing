@@ -63,9 +63,16 @@ EVENT_DTYPE = np.dtype([
 
 
 class Parser(ABC):
-    def __init__(self):
-        self.boss = 'None'
+    def __init__(self, boss='None'):
+        self.boss = boss
         self.log_directory = Path('./Logs') / self.boss / 'zevtc'
+
+        json_directory = Path('./Logs') / self.boss / 'json'
+        evtc_directory = Path('./Logs') / self.boss / 'evtc'
+        if not json_directory.exists():
+            json_directory.mkdir()
+        if not evtc_directory.exists():
+            evtc_directory.mkdir()
 
     @abstractmethod
     def get_row(self, log):

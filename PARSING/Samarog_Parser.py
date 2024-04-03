@@ -4,9 +4,7 @@ from pathlib import Path
 
 class SamarogParser(Parser):
     def __init__(self):
-        super().__init__()
-        self.boss = 'Samarog'
-        self.log_directory = Path('./Logs') / self.boss / 'zevtc'
+        super().__init__('Samarog')
 
     def get_row(self, log: Log):
         d, t = log.get_date_time()
