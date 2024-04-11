@@ -3,6 +3,7 @@ from pathlib import Path
 from zipfile import ZipFile
 from csv import DictWriter
 from UTILS.sheets_uploader import get_creds, update_sheet
+from PARSING.Parser_Factory import ParserUI
 import struct
 import numpy as np
 import pandas as pd
@@ -77,6 +78,9 @@ class Parser(ABC):
     @abstractmethod
     def get_row(self, log):
         pass
+
+    def subscribe_to_ui(self, boss, ui: ParserUI):
+        ui.registered_parsers[boss] = self
 
     def get_csv(self):
         csv_arr = []

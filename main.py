@@ -1,26 +1,28 @@
-from PARSING.Parser_Factory import parser_factory
-from pathlib import Path
+from PARSING.Parser_Factory import ParserUI
+from PARSING.Cerus_Parser import CerusParser
+from PARSING.QadimThePeerless_Parser import QadimThePeerlessParser
+from PARSING.Qadim_Parser import QadimParser
+from PARSING.Samarog_Parser import SamarogParser
 
-
-###
-### AUTOMATICALLY CREATE JSON AND EVTC FOLDERS
-###
 
 def main():
-    p = Path('Logs')
-    dirs = [d.name for d in p.iterdir() if d.is_dir()]
+    # should be a singleton
+    pui = ParserUI()
 
-    print("BOSSES:")
-    for index, boss in enumerate(dirs):
-        print(f'{index} {boss : <20} {len(list((p / boss / "zevtc").glob("*.zevtc"))) : >4} files')
+    cerus_parser = CerusParser()
+    cerus_parser.subscribe_to_ui(cerus_parser.boss, pui)
 
-    selection = int(input("Type a number from above to generate the associated sheet:"))
+    qadimp_parser = QadimThePeerlessParser()
+    qadimp_parser.subscribe_to_ui(qadimp_parser.boss, pui)
 
-    if selection in range(len(dirs)):
-        parser = parser_factory(dirs[selection])
-        parser.get_googlesheet(sheet_id='1X_o-88KodsNycnV2FfX0egNkdqjUkQsdjvoXpfIRZO0')
-    else:
-        raise ValueError(f'Expected an Integer in the {range(len(dirs))}')
+    qadim_parser = QadimParser()
+    qadim_parser.subscribe_to_ui(qadim_parser.boss, pui)
+
+    sama_parser = SamarogParser()
+    sama_parser.subscribe_to_ui(sama_parser.boss, pui)
+
+    parser = pui.create_parser()
+    parser.get_googlesheet(sheet_id='1X_o-88KodsNycnV2FfX0egNkdqjUkQsdjvoXpfIRZO0')
 
 
 if __name__ == '__main__':
