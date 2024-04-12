@@ -10,6 +10,7 @@ import pandas as pd
 import requests
 import json
 import time
+from random import randint
 
 GW2EI_UPLOAD = 'https://dps.report/uploadContent?json=1&generator=ei'
 GW2EI_GETJSON = 'https://dps.report/getJson?id='
@@ -203,6 +204,11 @@ class Parser(ABC):
         except FileNotFoundError:
             print(f'\nMissing credentials.json file in Misc directory. Could not update the googlesheet.')
         pass
+
+    def get_rand_log(self):
+        zevtc_list = list(self.log_directory.glob("*.zevtc"))
+        i = randint(0, len(zevtc_list))
+        return Log(zevtc_list[i])
 
     def __repr__(self):
         return f"{self.__class__.__name__} ({self.boss})"

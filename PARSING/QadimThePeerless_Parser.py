@@ -1,26 +1,21 @@
-from PARSING.Main_Parser import Parser, Log
+from PARSING.Main_Parser import Parser
 import numpy as np
-from pathlib import Path
 
 
 class QadimThePeerlessParser(Parser):
     def __init__(self):
         super().__init__('Qadim_The_Peerless')
 
-    def get_row(self, log: Log):
+    def get_row(self, log):
         d, t = log.get_date_time()
 
         qadim_id = log.agents[log.agents['prof'] == 22000].addr.min()
         start = log.events[log.events['state_change'] == 9].time.min()
-        end = log.events[log.events['state_change'] == 10].time.max()
 
         bubble_down = get_bubble_down(log.events)
         magma_lift = get_magma_lifting(log.events)
         trans_start, trans_end = get_pylon_transformation(log.events)
         charge_time = get_batteringblitz_start(log.events, qadim_id)
-
-        charge_end_hp = pylon_burn_start(qadim_id, log.events)
-        knockback_end_hp = pylon_burn_end(qadim_id, log.events)
 
         t1, t2 = pylon_burn_start(qadim_id, log.events)
         t1_knock, t2_knock = pylon_burn_end(qadim_id, log.events)
@@ -106,7 +101,6 @@ def get_pylon_transformation(events):
 
 def get_magma_lifting(events):
     lifts = events[(events['skillid'] == 56475) & (events['iff'] == 1)].time.to_list()
-    #lifts2 = events[(events['skillid'] == 56488) & (events['iff'] == 0)]
 
     filtered_lifts = []
     while len(lifts):
