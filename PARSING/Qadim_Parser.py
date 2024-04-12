@@ -7,7 +7,7 @@ class QadimParser(Parser):
     def __init__(self):
         super().__init__('Qadim')
 
-    def get_row(self, log: Log):
+    def get_row(self, log):
         d, t = log.get_date_time()
 
         row = {

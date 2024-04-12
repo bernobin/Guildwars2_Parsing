@@ -63,6 +63,85 @@ EVENT_DTYPE = np.dtype([
 ], True)
 
 
+class Log:
+    def __init__(self, zevtc_file):
+        self.name = zevtc_file.stem
+        self.zevtc_file = zevtc_file
+        self.agents, self.skills, self.events = self.generate_ase()
+        self.json = self.generate_json()
+
+    def generate_ase(self):
+        evtc_file = self.zevtc_file.parents[1] / 'evtc' / self.name
+        if not evtc_file.exists():
+            with ZipFile(self.zevtc_file) as zip_ref:
+                zip_ref.extract(self.name, evtc_file.parent)
+
+        with evtc_file.open(mode='rb') as f:
+            # Header
+            header = f.read(16)
+            evtc, version, area_id, revision = struct.unpack('<4s9sHB', header)
+
+            version = version.decode(ENCODING).rstrip('\0')
+
+            # Agents
+            dtype = AGENT_20180724_DTYPE
+            num_agents, = struct.unpack("<i", f.read(4))
+            agents_buffer = f.read(dtype.itemsize * num_agents)
+            agents_df = pd.DataFrame(np.frombuffer(agents_buffer, dtype=AGENT_20180724_DTYPE))
+
+            agents_df['name'] = agents_df['name'].apply(lambda x: x.decode())
+
+            # Skills
+            num_skills, = struct.unpack("<i", f.read(4))
+            skills_buffer = f.read(SKILL_DTYPE.itemsize * num_skills)
+            skills_df = pd.DataFrame(np.frombuffer(skills_buffer, dtype=SKILL_DTYPE))
+
+            # Events
+            events_buffer = f.read()
+            events_df = pd.DataFrame(np.frombuffer(events_buffer, dtype=EVENT_DTYPE))
+
+        return agents_df, skills_df, events_df
+
+    def generate_json(self):
+        json_file = self.zevtc_file.parents[1] / 'json' / (self.name + ".json")
+        if json_file.exists():
+            t = json_file.open()
+            return json.load(t)
+
+        try:
+            with self.zevtc_file.open(mode='rb') as f:
+                r = requests.post(GW2EI_UPLOAD, files={'file': f}, timeout=60000)
+            simple_report = r.json()
+            report_id = simple_report['id']
+            report_permalink = simple_report['permalink']
+
+            r = requests.post(GW2EI_GETJSON + report_id, timeout=60000)
+            detailed_report = r.json()
+            detailed_report['permalink'] = report_permalink
+
+            with json_file.open(mode='w') as f:
+                print('successfully created json file for', self.zevtc_file.name)
+                json.dump(detailed_report, f)
+            return detailed_report
+
+        except json.decoder.JSONDecodeError:
+            print('got jsonDecodeError, sleeping 1 minute')
+            time.sleep(60)
+            return self.generate_json()
+
+    def get_date_time(self):
+        d, t = self.name.split('-')
+
+        # Formating
+        d = d[0:4] + '.' + d[4:6] + '.' + d[6:8]
+        t = t[0:2] + ':' + t[2:4] + ':' + t[4:6]
+
+        return d, t
+
+    def __repr__(self):
+        return f"{self.__class__.__name__} ({self.zevtc_file})"
+
+
 class Parser(ABC):
     def __init__(self, boss):
         self.boss = boss
@@ -79,7 +158,7 @@ class Parser(ABC):
             evtc_directory.mkdir()
 
     @abstractmethod
-    def get_row(self, log):
+    def get_row(self, log: Log):
         pass
 
     def subscribe_to_ui(self, boss, ui: ParserUI):
@@ -115,6 +194,7 @@ class Parser(ABC):
         csv_array, fieldnames = self.get_csv()
         sheet_values = [[key for key in fieldnames]] + \
                        [[row[key] if key in row else None for key in fieldnames] for row in csv_array]
+
         sheet_range = self.boss + '_DataDump'
         try:
             creds = get_creds()
@@ -128,86 +208,7 @@ class Parser(ABC):
         return f"{self.__class__.__name__} ({self.boss})"
 
 
-class Log:
-    def __init__(self, zevtc_file):
-        self.zevtc_file = zevtc_file
-        self.agents, self.skills, self.events = generate_ase(zevtc_file=zevtc_file)
-        self.json = generate_json(zevtc_file=zevtc_file)
-
-    def get_date_time(self):
-        d, t = self.zevtc_file.stem.split('-')
-
-        # Formating
-        d = d[0:4] + '.' + d[4:6] + '.' + d[6:8]
-        t = t[0:2] + ':' + t[2:4] + ':' + t[4:6]
-
-        return d, t
-
-    def __repr__(self):
-        return f"{self.__class__.__name__} ({self.zevtc_file})"
-
-
-def generate_ase(zevtc_file):
-    evtc_file = zevtc_file.parents[1] / 'evtc' / zevtc_file.stem
-    if not evtc_file.exists():
-        with ZipFile(zevtc_file) as zip_ref:
-            zip_ref.extract(zevtc_file.stem, evtc_file.parent)
-
-    with evtc_file.open(mode='rb') as f:
-        # Header
-        header = f.read(16)
-        evtc, version, area_id, revision = struct.unpack('<4s9sHB', header)
-
-        version = version.decode(ENCODING).rstrip('\0')
-
-        # Agents
-        dtype = AGENT_20180724_DTYPE
-        num_agents, = struct.unpack("<i", f.read(4))
-        agents_buffer = f.read(dtype.itemsize * num_agents)
-        agents_df = pd.DataFrame(np.frombuffer(agents_buffer, dtype=AGENT_20180724_DTYPE))
-
-        agents_df['name'] = agents_df['name'].apply(lambda x: x.decode())
-
-        # Skills
-        num_skills, = struct.unpack("<i", f.read(4))
-        skills_buffer = f.read(SKILL_DTYPE.itemsize * num_skills)
-        skills_df = pd.DataFrame(np.frombuffer(skills_buffer, dtype=SKILL_DTYPE))
-
-        # Events
-        events_buffer = f.read()
-        events_df = pd.DataFrame(np.frombuffer(events_buffer, dtype=EVENT_DTYPE))
-
-    return agents_df, skills_df, events_df
-
-
-def generate_json(zevtc_file):
-    json_file = zevtc_file.parents[1] / 'json' / (zevtc_file.stem + ".json")
-    if json_file.exists():
-        t = json_file.open()
-        return json.load(t)
-
-    try:
-        with zevtc_file.open(mode='rb') as f:
-            r = requests.post(GW2EI_UPLOAD, files={'file': f}, timeout=60000)
-        simple_report = r.json()
-        report_id = simple_report['id']
-        report_permalink = simple_report['permalink']
-
-        r = requests.post(GW2EI_GETJSON + report_id, timeout=60000)
-        detailed_report = r.json()
-        detailed_report['permalink'] = report_permalink
-
-        with json_file.open(mode='w') as f:
-            print('successfully created json file for', zevtc_file.name)
-            json.dump(detailed_report, f)
-        return detailed_report
-
-    except json.decoder.JSONDecodeError:
-        print('got jsonDecodeError, sleeping 1 minute')
-        time.sleep(60)
-        return generate_json(zevtc_file)
-
-
+# needed for the Parser classes get_csv method
 def update_fieldnames(fieldnames, new_row):
     updated_fieldnames = []
 

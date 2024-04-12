@@ -57,7 +57,7 @@ def update_sheet(creds, spreadsheet_id, spreadsheet_range, values):
         sheet = service.spreadsheets()
         sheet.values().update(spreadsheetId=spreadsheet_id,
                               range=spreadsheet_range,
-                              valueInputOption='RAW',
+                              valueInputOption='USER_ENTERED',
                               body=value_range).execute()
 
     except HttpError as err:
@@ -75,7 +75,7 @@ def csv_to_googlesheet(boss_name, SPREADSHEET_ID=CND_SPREADSHEET_ID):
                 values.append(row)
 
     # range can be larger than data
-    sheet_range = boss_name + '!A:XX'
+    sheet_range = boss_name
 
     creds = get_creds()
     update_sheet(creds, SPREADSHEET_ID, sheet_range, values)
