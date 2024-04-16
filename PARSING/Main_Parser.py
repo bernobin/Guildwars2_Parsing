@@ -162,8 +162,8 @@ class Parser(ABC):
     def get_row(self, log: Log):
         pass
 
-    def subscribe_to_ui(self, boss, ui: ParserUI):
-        ui.registered_parsers[boss] = self
+    def subscribe_to_ui(self, ui: ParserUI):
+        ui.registered_parsers.add(self)
 
     def get_csv(self):
         csv_arr = []

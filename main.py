@@ -15,19 +15,19 @@ def main():
     pui = ParserUI()
 
     cerus_parser = CerusParser()
-    cerus_parser.subscribe_to_ui(cerus_parser.boss, pui)
+    cerus_parser.subscribe_to_ui(pui)
 
     qadimp_parser = QadimThePeerlessParser()
-    qadimp_parser.subscribe_to_ui(qadimp_parser.boss, pui)
+    qadimp_parser.subscribe_to_ui(pui)
 
     qadim_parser = QadimParser()
-    qadim_parser.subscribe_to_ui(qadim_parser.boss, pui)
+    qadim_parser.subscribe_to_ui(pui)
 
     sama_parser = SamarogParser()
-    sama_parser.subscribe_to_ui(sama_parser.boss, pui)
+    sama_parser.subscribe_to_ui(pui)
 
     gorse_parser = GorsevalParser()
-    gorse_parser.subscribe_to_ui(gorse_parser.boss, pui)
+    gorse_parser.subscribe_to_ui(pui)
 
     parser = pui.create_parser()
     parser.get_googlesheet(sheet_id='1X_o-88KodsNycnV2FfX0egNkdqjUkQsdjvoXpfIRZO0')
