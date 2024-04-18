@@ -5,31 +5,38 @@ from PARSING.Qadim_Parser import QadimParser
 from PARSING.Samarog_Parser import SamarogParser
 from PARSING.Gorseval_Parser import GorsevalParser
 
+from PARSING.Cerus_Parser_Timeline import CerusParserTimeline
 
 ###
 ### Automate token deletion if expired
+### MOVE nan replacer into class method for create googlesheet
 ###
+
 
 def main():
     # should be a singleton
-    pui = ParserUI()
+    parser_ui = ParserUI()
 
     cerus_parser = CerusParser()
-    cerus_parser.subscribe_to_ui(pui)
+    cerus_parser.subscribe_to_ui('cerus', parser_ui)
 
     qadimp_parser = QadimThePeerlessParser()
-    qadimp_parser.subscribe_to_ui(pui)
+    qadimp_parser.subscribe_to_ui('qadim the peerless', parser_ui)
 
     qadim_parser = QadimParser()
-    qadim_parser.subscribe_to_ui(pui)
+    qadim_parser.subscribe_to_ui('qadim', parser_ui)
 
     sama_parser = SamarogParser()
-    sama_parser.subscribe_to_ui(pui)
+    sama_parser.subscribe_to_ui('samarog', parser_ui)
 
     gorse_parser = GorsevalParser()
-    gorse_parser.subscribe_to_ui(pui)
+    gorse_parser.subscribe_to_ui('gorseval', parser_ui)
 
-    parser = pui.create_parser()
+    cerus_parser_timeline = CerusParserTimeline()
+    cerus_parser_timeline.subscribe_to_ui('cerus timeline', parser_ui)
+
+    parser = parser_ui.create_parser()
+#    parser.get_csv()
     parser.get_googlesheet(sheet_id='1X_o-88KodsNycnV2FfX0egNkdqjUkQsdjvoXpfIRZO0')
 
 

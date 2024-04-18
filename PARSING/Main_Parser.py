@@ -144,7 +144,7 @@ class Log:
 
 
 class Parser(ABC):
-    def __init__(self, boss):
+    def __init__(self, boss: str):
         self.boss = boss
         self.log_directory = Path('./Logs') / self.boss / 'zevtc'
 
@@ -162,8 +162,8 @@ class Parser(ABC):
     def get_row(self, log: Log):
         pass
 
-    def subscribe_to_ui(self, ui: ParserUI):
-        ui.registered_parsers.add(self)
+    def subscribe_to_ui(self, name, ui: ParserUI):
+        ui.registered_parsers[name] = self
 
     def get_csv(self):
         csv_arr = []
@@ -176,8 +176,8 @@ class Parser(ABC):
                 print(row)
                 csv_arr.append(row)
 
-                keys = [i for i in row.keys()]
-                fieldnames = update_fieldnames(fieldnames, keys)
+                new_fieldnames = list(row)
+                fieldnames = update_fieldnames(fieldnames, new_fieldnames)
 
             except Exception as e:
                 print(f'{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e} with log {zevtc_file.name}')
