@@ -1,16 +1,14 @@
-from PARSING.Cerus_Parser import CerusParser
+from UTILS.dash_template import generate_dash
 from pathlib import Path
 import pandas as pd
 
-CSV_FILE = Path.cwd() / 'Outputs' / 'Cerus.csv'
+CSV_FILE = Path.cwd() / 'Outputs' / '[CnD] Cerus.csv'
 
 
 def dash_example():
     try:
         df = pd.read_csv(CSV_FILE)
-
-        c = CerusParser()
-        c.generate_dash(df)
+        generate_dash(df)
 
     except FileNotFoundError:
         print('csv file needs to be generated first. Please run main.py and select Cerus.')

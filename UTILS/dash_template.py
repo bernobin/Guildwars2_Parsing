@@ -5,7 +5,7 @@ import plotly.express as px
 
 from pathlib import Path
 
-CSV_FILE = Path.cwd() / 'Outputs' / 'Cerus.csv'
+CSV_FILE = Path.cwd() / 'Outputs' / '[CnD] Cerus.csv'
 
 
 def generate_dash(df):
