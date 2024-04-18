@@ -1,42 +1,39 @@
-from PARSING.Parser_Factory import ParserUI
-from PARSING.Cerus_Parser import CerusParser
-from PARSING.QadimThePeerless_Parser import QadimThePeerlessParser
-from PARSING.Qadim_Parser import QadimParser
-from PARSING.Samarog_Parser import SamarogParser
-from PARSING.Gorseval_Parser import GorsevalParser
+from PARSING.Main_Parser import Project
 
-from PARSING.Cerus_Parser_Timeline import CerusParserTimeline
+from PARSING.Cerus_Parser_Timeline import CerusLogTimeline
+from PARSING.Cerus_Parser import CerusLog
+from PARSING.Gorseval_Parser import GorsevalLog
+from PARSING.QadimThePeerless_Parser import QadimThePeerlessLog
+from PARSING.Qadim_Parser import QadimLog
+from PARSING.Samarog_Parser import SamarogLog
 
 ###
 ### Automate token deletion if expired
 ### MOVE nan replacer into class method for create googlesheet
+### Implement KeyNotUnique Error for PUI
 ###
 
 
 def main():
-    # should be a singleton
-    parser_ui = ParserUI()
+    projects = set()
 
-    cerus_parser = CerusParser()
-    cerus_parser.subscribe_to_ui('cerus', parser_ui)
+    projects.add(Project(name='[CnD] Cerus', boss='Cerus', LogClass=CerusLog))
+    projects.add(Project(name='[CnD] Cerus timeline', boss='Cerus', LogClass=CerusLogTimeline))
+    projects.add(Project(name='[cA] Gorseval', boss='Gorseval', LogClass=GorsevalLog))
+    projects.add(Project(name='[Aves] Qadim The Peerless', boss='Qadim_The_Peerless', LogClass=QadimThePeerlessLog))
+    projects.add(Project(name='[Aves] Qadim', boss='Qadim', LogClass=QadimLog))
+    projects.add(Project(name='[cA] Samarog', boss='Samarog', LogClass=SamarogLog))
 
-    qadimp_parser = QadimThePeerlessParser()
-    qadimp_parser.subscribe_to_ui('qadim the peerless', parser_ui)
+    projects = sorted(projects)
 
-    qadim_parser = QadimParser()
-    qadim_parser.subscribe_to_ui('qadim', parser_ui)
+    for i, project in enumerate(projects):
+        print(f'{i}:\t{project.name}')
+#        parser = project.create_parser()
+#        parser.get_csv(max_rows=5)
 
-    sama_parser = SamarogParser()
-    sama_parser.subscribe_to_ui('samarog', parser_ui)
-
-    gorse_parser = GorsevalParser()
-    gorse_parser.subscribe_to_ui('gorseval', parser_ui)
-
-    cerus_parser_timeline = CerusParserTimeline()
-    cerus_parser_timeline.subscribe_to_ui('cerus timeline', parser_ui)
-
-    parser = parser_ui.create_parser()
-#    parser.get_csv()
+    selection = int(input(f'\nSelect the index of a project you are interested in:\n'))
+    parser = projects[selection].create_parser()
+#    parser.get_csv(max_rows=5)
     parser.get_googlesheet(sheet_id='1X_o-88KodsNycnV2FfX0egNkdqjUkQsdjvoXpfIRZO0')
 
 

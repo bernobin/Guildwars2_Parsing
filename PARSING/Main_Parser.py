@@ -11,6 +11,7 @@ import requests
 import json
 import time
 from random import randint
+from dataclasses import dataclass
 
 GW2EI_UPLOAD = 'https://dps.report/uploadContent?json=1&generator=ei'
 GW2EI_GETJSON = 'https://dps.report/getJson?id='
@@ -64,8 +65,8 @@ EVENT_DTYPE = np.dtype([
 ], True)
 
 
-class Log:
-    def __init__(self, zevtc_file):
+class Log(ABC):
+    def __init__(self, zevtc_file: Path):
         self.name = zevtc_file.stem
         self.zevtc_file = zevtc_file
         self.agents, self.skills, self.events = self.generate_ase()
@@ -139,14 +140,20 @@ class Log:
 
         return d, t
 
+    @abstractmethod
+    def get_row(self):
+        pass
+
     def __repr__(self):
         return f"{self.__class__.__name__} ({self.zevtc_file})"
 
 
-class Parser(ABC):
-    def __init__(self, boss: str):
+class Parser:
+    def __init__(self, project, boss, LogClass):
+        self.project = project
         self.boss = boss
         self.log_directory = Path('./Logs') / self.boss / 'zevtc'
+        self.LogClass = LogClass
 
         self.create_directories()
 
@@ -158,31 +165,32 @@ class Parser(ABC):
         if not evtc_directory.exists():
             evtc_directory.mkdir()
 
-    @abstractmethod
-    def get_row(self, log: Log):
-        pass
-
     def subscribe_to_ui(self, name, ui: ParserUI):
         ui.registered_parsers[name] = self
 
-    def get_csv(self):
+    def get_csv(self, max_rows=-1):
         csv_arr = []
         fieldnames = []
+        nr_rows = 0
 
         for zevtc_file in self.log_directory.glob("*.zevtc"):
+            if nr_rows == max_rows:
+                break
+
             try:
-                log = Log(zevtc_file=zevtc_file)
-                row = self.get_row(log)
+                log = self.LogClass(zevtc_file=zevtc_file)
+                row = log.get_row()
                 print(row)
                 csv_arr.append(row)
 
                 new_fieldnames = list(row)
                 fieldnames = update_fieldnames(fieldnames, new_fieldnames)
+                nr_rows += 1
 
             except Exception as e:
                 print(f'{type(e).__name__} at line {e.__traceback__.tb_lineno} of {__file__}: {e} with log {zevtc_file.name}')
 
-        with open(OUTPUTS / (self.boss + '.csv'), 'w') as f:
+        with open(OUTPUTS / (self.project + '.csv'), 'w') as f:
             writer = DictWriter(f, fieldnames=fieldnames)
             writer.writeheader()
             writer.writerows(csv_arr)
@@ -242,3 +250,20 @@ def update_fieldnames(fieldnames, new_row):
         j += 1
 
     return updated_fieldnames
+
+
+class Project:
+    def __init__(self, name: str, boss: str, LogClass):
+        self.name = name
+        self.boss = boss
+        self.LogClass = LogClass
+
+    def create_parser(self):
+        return Parser(project=self.name, boss=self.boss, LogClass=self.LogClass)
+
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __repr__(self):
+        return f'Project ({self.name}) for the boss: {self.boss}'
+

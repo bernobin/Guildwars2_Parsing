@@ -1,35 +1,32 @@
-from PARSING.Main_Parser import Parser
+from PARSING.Main_Parser import Log
 import numpy as np
 
 
-class QadimThePeerlessParser(Parser):
-    def __init__(self):
-        super().__init__('Qadim_The_Peerless')
+class QadimThePeerlessLog(Log):
+    def get_row(self):
+        d, t = self.get_date_time()
 
-    def get_row(self, log):
-        d, t = log.get_date_time()
+        qadim_id = self.agents[self.agents['prof'] == 22000].addr.min()
+        start = self.events[self.events['state_change'] == 9].time.min()
 
-        qadim_id = log.agents[log.agents['prof'] == 22000].addr.min()
-        start = log.events[log.events['state_change'] == 9].time.min()
+        bubble_down = get_bubble_down(self.events)
+        magma_lift = get_magma_lifting(self.events)
+        trans_start, trans_end = get_pylon_transformation(self.events)
+        charge_time = get_batteringblitz_start(self.events, qadim_id)
 
-        bubble_down = get_bubble_down(log.events)
-        magma_lift = get_magma_lifting(log.events)
-        trans_start, trans_end = get_pylon_transformation(log.events)
-        charge_time = get_batteringblitz_start(log.events, qadim_id)
-
-        t1, t2 = pylon_burn_start(qadim_id, log.events)
-        t1_knock, t2_knock = pylon_burn_end(qadim_id, log.events)
+        t1, t2 = pylon_burn_start(qadim_id, self.events)
+        t1_knock, t2_knock = pylon_burn_end(qadim_id, self.events)
 
         ee_dicts = [
-            get_erratic_energy(log.events, log.agents, bubble_down[0], magma_lift[0], qadim_id),
-            get_erratic_energy(log.events, log.agents, bubble_down[1], magma_lift[2], qadim_id),
-            get_erratic_energy(log.events, log.agents, bubble_down[2], charge_time, qadim_id),
-            get_erratic_energy(log.events, log.agents, t1, t1_knock, qadim_id),
-            get_erratic_energy(log.events, log.agents, t2, t2_knock, qadim_id)
+            get_erratic_energy(self.events, self.agents, bubble_down[0], magma_lift[0], qadim_id),
+            get_erratic_energy(self.events, self.agents, bubble_down[1], magma_lift[2], qadim_id),
+            get_erratic_energy(self.events, self.agents, bubble_down[2], charge_time, qadim_id),
+            get_erratic_energy(self.events, self.agents, t1, t1_knock, qadim_id),
+            get_erratic_energy(self.events, self.agents, t2, t2_knock, qadim_id)
         ]
 
         row = {
-            'link': log.json.get('permalink'),
+            'link': self.json.get('permalink'),
             'date': d,
             'time': t,
             'log start': start,
@@ -48,15 +45,15 @@ class QadimThePeerlessParser(Parser):
             'lift 2 end': magma_lift[3],
 
             'p3 start': bubble_down[2],
-            '40% time': get_hptime(log.events, 0.4, qadim_id),
+            '40% time': get_hptime(self.events, 0.4, qadim_id),
             'charge north': charge_time,
             'erratic energy 3': round(sum(ee_dicts[2][k] for k in ee_dicts[2])/100, 2),
-            'cc_before_40%': cc_before_40(log.events, qadim_id, charge_time, bubble_down[2]),
+            'cc_before_40%': cc_before_40(self.events, qadim_id, charge_time, bubble_down[2]),
 
-            'hp after charge 1': get_hp(qadim_id, t1, log.events),
-            'hp after charge 2': get_hp(qadim_id, t2, log.events),
-            'hp after knockback 1': get_hp(qadim_id, t1_knock, log.events),
-            'hp after knockback 2': get_hp(qadim_id, t2_knock, log.events),
+            'hp after charge 1': get_hp(qadim_id, t1, self.events),
+            'hp after charge 2': get_hp(qadim_id, t2, self.events),
+            'hp after knockback 1': get_hp(qadim_id, t1_knock, self.events),
+            'hp after knockback 2': get_hp(qadim_id, t2_knock, self.events),
             'erratic energy 4': round(sum(ee_dicts[3][k] for k in ee_dicts[3])/100, 2),
             'erratic energy 5': round(sum(ee_dicts[4][k] for k in ee_dicts[4])/100, 2)
         }

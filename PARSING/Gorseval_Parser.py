@@ -1,28 +1,25 @@
-from PARSING.Main_Parser import Parser, Log
+from PARSING.Main_Parser import Log
 import numpy as np
 
 
-class GorsevalParser(Parser):
-    def __init__(self):
-        super().__init__('Gorseval')
+class GorsevalLog(Log):
+    def get_row(self):
+        d, t = self.get_date_time()
 
-    def get_row(self, log: Log):
-        d, t = log.get_date_time()
+        gorse_id = self.agents[self.agents['prof'] == 15429].addr.min()
+        chargedsoul_ids = self.agents[self.agents['prof'] == 15434].addr.tolist()
 
-        gorse_id = log.agents[log.agents['prof'] == 15429].addr.min()
-        chargedsoul_ids = log.agents[log.agents['prof'] == 15434].addr.tolist()
-
-        phase_starts, phase_ends = get_phase_start_end(log.events, gorse_id)
-        split_starts = get_split_starts(log.events, chargedsoul_ids)
-        split_deaths = get_split_deaths(log.events, chargedsoul_ids)
+        phase_starts, phase_ends = get_phase_start_end(self.events, gorse_id)
+        split_starts = get_split_starts(self.events, chargedsoul_ids)
+        split_deaths = get_split_deaths(self.events, chargedsoul_ids)
 
         row = {
-            'link': log.json['permalink'],
+            'link': self.json['permalink'],
             'date': d,
             'time': t,
 
-            'p1 breakbar start': (get_cc_start_end(log.events, phase_starts[0])[0] - phase_starts[0]) / 1000,
-            'p1 breakbar end': (get_cc_start_end(log.events, phase_starts[0])[1] - phase_starts[0]) / 1000,
+            'p1 breakbar start': (get_cc_start_end(self.events, phase_starts[0])[0] - phase_starts[0]) / 1000,
+            'p1 breakbar end': (get_cc_start_end(self.events, phase_starts[0])[1] - phase_starts[0]) / 1000,
             'p1 end': (phase_ends[0] - phase_starts[0]) / 1000,
             's1 start': (split_starts[0] - phase_starts[0]) / 1000,
             's1 add1 death': (split_deaths[0] - phase_starts[0]) / 1000,
@@ -31,8 +28,8 @@ class GorsevalParser(Parser):
             's1 add4 death': (split_deaths[3] - phase_starts[0]) / 1000,
 
             'p2 start': (phase_starts[1] - phase_starts[0]) / 1000,
-            'p2 breakbar start': (get_cc_start_end(log.events, phase_starts[1])[0] - phase_starts[0]) / 1000,
-            'p2 breakbar end': (get_cc_start_end(log.events, phase_starts[1])[1] - phase_starts[0]) / 1000,
+            'p2 breakbar start': (get_cc_start_end(self.events, phase_starts[1])[0] - phase_starts[0]) / 1000,
+            'p2 breakbar end': (get_cc_start_end(self.events, phase_starts[1])[1] - phase_starts[0]) / 1000,
             'p2 end': (phase_ends[1] - phase_starts[0]) / 1000,
             's2 start': (split_starts[1] - phase_starts[0]) / 1000,
             's2 add1 death': (split_deaths[4] - phase_starts[0]) / 1000,
@@ -41,8 +38,8 @@ class GorsevalParser(Parser):
             's2 add4 death': (split_deaths[7] - phase_starts[0]) / 1000,
 
             'p3 start': (phase_starts[2] - phase_starts[0]) / 1000,
-            'p3 breakbar start': (get_cc_start_end(log.events, phase_starts[2])[0] - phase_starts[0]) / 1000,
-            'p3 breakbar end': (get_cc_start_end(log.events, phase_starts[2])[1] - phase_starts[0]) / 1000,
+            'p3 breakbar start': (get_cc_start_end(self.events, phase_starts[2])[0] - phase_starts[0]) / 1000,
+            'p3 breakbar end': (get_cc_start_end(self.events, phase_starts[2])[1] - phase_starts[0]) / 1000,
             'p3 end': (phase_ends[2] - phase_starts[0]) / 1000,
         }
 

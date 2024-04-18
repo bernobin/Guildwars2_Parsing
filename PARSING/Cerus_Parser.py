@@ -1,33 +1,29 @@
-from PARSING.Main_Parser import Parser, Log
+from PARSING.Main_Parser import Log
 from UTILS.dash_template import generate_dash
 import numpy as np
-from pathlib import Path
 
 
-class CerusParser(Parser):
-    def __init__(self):
-        super().__init__('Cerus')
+class CerusLog(Log):
+    def get_row(self):
+        d, t = self.get_date_time()
 
-    def get_row(self, log: Log):
-        d, t = log.get_date_time()
+        cerus_id = self.agents[self.agents['prof'] == 25989].addr.min()
+        barrier_applications = get_barrier_from_ase(self.events, cerus_id)
+        total_stacks = len(self.events[(self.events['skillid'] == 69550) & (self.events['dst_agent'] == cerus_id)])
 
-        cerus_id = log.agents[log.agents['prof'] == 25989].addr.min()
-        barrier_applications = get_barrier_from_ase(log.events, cerus_id)
-        total_stacks = len(log.events[(log.events['skillid'] == 69550) & (log.events['dst_agent'] == cerus_id)])
-
-        total_barrier = get_barrier(log.json['targets'][0]['totalDamageTaken'][0])
+        total_barrier = get_barrier(self.json['targets'][0]['totalDamageTaken'][0])
 
         row = {
-            'link': log.json['permalink'],
+            'link': self.json['permalink'],
             'date': d,
             'time': t,
-            'stacks P1': stacks(log.json['mechanics'], get_timespan(log.json['phases'], 'Phase 1')),
-            'stacks P2': stacks(log.json['mechanics'], get_timespan(log.json['phases'], 'Phase 2')),
-            'final percent': round(100 - log.json['targets'][0]['healthPercentBurned'], 2),
+            'stacks P1': stacks(self.json['mechanics'], get_timespan(self.json['phases'], 'Phase 1')),
+            'stacks P2': stacks(self.json['mechanics'], get_timespan(self.json['phases'], 'Phase 2')),
+            'final percent': round(100 - self.json['targets'][0]['healthPercentBurned'], 2),
             'final stacks': total_stacks,
             'barrier applications': barrier_applications,
             'total barrier': total_barrier,
-            'downstates': get_downstates(log.json['mechanics'])
+            'downstates': get_downstates(self.json['mechanics'])
         }
         return row
 

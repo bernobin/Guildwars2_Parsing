@@ -1,22 +1,19 @@
-from PARSING.Main_Parser import Parser, Log
-from pathlib import Path
+from PARSING.Main_Parser import Log
 import numpy as np
 
 
-class QadimParser(Parser):
-    def __init__(self):
-        super().__init__('Qadim')
+class QadimLog(Log):
 
-    def get_row(self, log):
-        d, t = log.get_date_time()
+    def get_row(self):
+        d, t = self.get_date_time()
 
         row = {
-            'link': log.json.get('permalink'),
+            'link': self.json.get('permalink'),
             'date': d,
             'time': t
         }
 
-        lamp_duration = get_lamp_duration(log.events)
+        lamp_duration = get_lamp_duration(self.events)
         for i in range(3):
             row['lamp ' + str(i + 1)] = lamp_duration[i] / 1000
 

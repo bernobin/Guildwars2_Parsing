@@ -1,22 +1,20 @@
-from PARSING.Main_Parser import Parser, Log
+from PARSING.Main_Parser import Log
 import numpy as np
 
 
-class CerusParserTimeline(Parser):
-    def __init__(self):
-        super().__init__('Cerus')
+class CerusLogTimeline(Log):
 
-    def get_row(self, log: Log):
-        d, t = log.get_date_time()
+    def get_row(self):
+        d, t = self.get_date_time()
 
-        cerus_id = log.agents[log.agents['prof'] == 25989].addr.min()
+        cerus_id = self.agents[self.agents['prof'] == 25989].addr.min()
 
-        phase_starts = get_phases(log.events)
-        cerus_slams = get_slams(log.events, cerus_id)
-        add_spawns = get_adds(log.agents, log.events)
+        phase_starts = get_phases(self.events)
+        cerus_slams = get_slams(self.events, cerus_id)
+        add_spawns = get_adds(self.agents, self.events)
 
         row = {
-            'link': log.json['permalink'],
+            'link': self.json['permalink'],
             'date': d,
             'time': t,
             'phase 1 start': (phase_starts['phase 1'] - phase_starts['phase 1']) / 1000,

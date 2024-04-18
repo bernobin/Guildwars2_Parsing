@@ -1,15 +1,12 @@
-from PARSING.Main_Parser import Parser, Log
-from pathlib import Path
+from PARSING.Main_Parser import Log
 
 
-class SamarogParser(Parser):
-    def __init__(self):
-        super().__init__('Samarog')
+class SamarogLog(Log):
 
-    def get_row(self, log: Log):
-        d, t = log.get_date_time()
+    def get_row(self):
+        d, t = self.get_date_time()
 
-        breakbar_length, breakbar_damage, breakbar_source = get_breakbar_lengths(log.json)
+        breakbar_length, breakbar_damage, breakbar_source = get_breakbar_lengths(self.json)
         while len(breakbar_length) < 9:
             breakbar_length.append(None)
             breakbar_damage.append(None)
@@ -18,7 +15,7 @@ class SamarogParser(Parser):
         score = 0
 
         row = {
-            'link': log.json.get('permalink'),
+            'link': self.json.get('permalink'),
             'date': d,
             'time': t,
             'score': score
