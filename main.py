@@ -11,6 +11,7 @@ from PARSING.Samarog_Parser import SamarogLog
 ### Automate token deletion if expired
 ### MOVE nan replacer into class method for create googlesheet
 ### Implement KeyNotUnique Error for PUI
+### Implement Input Error handeling
 ###
 
 
@@ -33,7 +34,7 @@ def main():
 
     selection = int(input(f'\nSelect the index of a project you are interested in:\n'))
     parser = projects[selection].create_parser()
-    parser.get_csv()
+#    parser.get_csv()
     parser.get_googlesheet(sheet_id='1X_o-88KodsNycnV2FfX0egNkdqjUkQsdjvoXpfIRZO0')
 
 
