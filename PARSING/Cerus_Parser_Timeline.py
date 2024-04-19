@@ -20,8 +20,6 @@ class CerusLogTimeline(Log):
             'phase 1 start': (phase_starts['phase 1'] - phase_starts['phase 1']) / 1000,
             'phase 2 start': (phase_starts['phase 2'] - phase_starts['phase 1']) / 1000,
             'phase 3 start': (phase_starts['phase 3'] - phase_starts['phase 1']) / 1000,
-#            'add spawns': [(spawn - phase_starts['phase 1']) / 1000 for spawn in add_spawns],
-#            'centered slams': [(cerus_slam - phase_starts['phase 1']) / 1000 for cerus_slam in cerus_slams]
         }
 
         p1_adds = 1
@@ -78,7 +76,6 @@ def get_phases(e) -> dict:
         'phase 2': e[e['skillid'] == empowered_rage_buff].head(1).time.min(),
         'phase 3': e[e['skillid'] == empowered_regret_buff].head(1).time.min()
     }
-
 
     return phase_starts
 
