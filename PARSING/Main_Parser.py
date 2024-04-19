@@ -3,7 +3,6 @@ from pathlib import Path
 from zipfile import ZipFile
 from csv import DictWriter
 from UTILS.sheets_uploader import get_creds, update_sheet
-from PARSING.Parser_Factory import ParserUI
 import struct
 import numpy as np
 import pandas as pd
@@ -11,7 +10,6 @@ import requests
 import json
 import time
 from random import randint
-from dataclasses import dataclass
 
 GW2EI_UPLOAD = 'https://dps.report/uploadContent?json=1&generator=ei'
 GW2EI_GETJSON = 'https://dps.report/getJson?id='
@@ -149,7 +147,7 @@ class Log(ABC):
 
 
 class Parser:
-    def __init__(self, project, boss, LogClass):
+    def __init__(self, project, boss, LogClass: type):
         self.project = project
         self.boss = boss
         self.log_directory = Path('./Logs') / self.boss / 'zevtc'
@@ -164,9 +162,6 @@ class Parser:
             json_directory.mkdir()
         if not evtc_directory.exists():
             evtc_directory.mkdir()
-
-    def subscribe_to_ui(self, name, ui: ParserUI):
-        ui.registered_parsers[name] = self
 
     def get_csv(self, max_rows=-1):
         csv_arr = []
