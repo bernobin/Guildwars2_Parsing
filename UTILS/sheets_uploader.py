@@ -3,6 +3,7 @@ from __future__ import print_function
 import csv
 from pathlib import Path
 
+import google.auth.exceptions
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -32,7 +33,12 @@ def get_creds():
     # If there are no (valid) credentials available, let the user log in.
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
-            creds.refresh(Request())
+            try:
+                creds.refresh(Request())
+            except google.auth.exceptions.RefreshError:
+                print('refreshing token')
+                token_file.unlink()
+                return get_creds()
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
                 str(creds_file), SCOPES)
