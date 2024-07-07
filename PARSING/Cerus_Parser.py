@@ -23,7 +23,8 @@ class CerusLog(Log):
             'final stacks': total_stacks,
             'barrier applications': barrier_applications,
             'total barrier': total_barrier,
-            'downstates': get_downstates(self.json['mechanics'])
+            'downstates': get_downstates(self.json['mechanics']),
+            'downs to drops': str(get_downs_to_empowered_despair(self.events, self.agents))[1:-1]
         }
         return row
 
@@ -48,6 +49,22 @@ def get_barrier(dmg_taken):
     for src in dmg_taken:
         summ += src['shieldDamage']
     return summ
+
+
+def get_downs_to_empowered_despair(events, agents):
+    players = agents[agents['prof'] < 10].addr.tolist()
+    downs_ids = events[(events['result'] == 9) & (events['dst_agent'].isin(players)) & (events['skillid'] == 70292)].dst_agent
+
+    if downs_ids.empty:
+        return []
+
+    names = []
+    for id in downs_ids:
+        name_string = agents[agents['addr'] == id].name.min()
+        account = name_string.split('\x00')[1]
+        names.append(account[1:])
+
+    return names
 
 
 def get_downstates(mechanics):
