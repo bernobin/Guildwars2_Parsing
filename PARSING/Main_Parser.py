@@ -217,7 +217,7 @@ class Parser:
         return f"{self.__class__.__name__} ({self.boss})"
 
 
-# needed for the Parser classes get_csv method
+# needed for the Parser.get_csv method
 def update_fieldnames(fieldnames, new_row):
     updated_fieldnames = []
 

@@ -12,6 +12,7 @@ from PARSING.Samarog_Parser import SamarogLog
 ### MOVE nan replacer into class method for create googlesheet
 ### Implement KeyNotUnique Error for PUI
 ### Implement Input Error handeling
+### Delete Parser Factory?
 ###
 
 
